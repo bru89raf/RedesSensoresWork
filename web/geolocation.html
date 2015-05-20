@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Geolocation</title>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+        <style>
+            html, body, #map-canvas {
+                height: 100%;
+                margin: 0px;
+                padding: 0px
+            }
+        </style>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+
+        <script>
+            // Note: This example requires that you consent to location sharing when
+            // prompted by your browser. If you see a blank space instead of the map, this
+            // is probably because you have denied permission for location sharing.
+
+            var map;
+
+            function initialize() {
+                var mapOptions = {
+                    zoom: 6,
+                    mapTypeId: google.maps.MapTypeId.RoadMap
+                };
+                map = new google.maps.Map(document.getElementById('map-canvas'),
+                        mapOptions);
+
+                // Try HTML5 geolocation
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        var pos = new google.maps.LatLng(position.coords.latitude,
+                                position.coords.longitude);
+
+                        var infowindow = new google.maps.InfoWindow({
+                            map: map,
+                            position: pos,
+                            content: 'ESTOU AQUI'
+                        });
+
+                        map.setCenter(pos);
+                    }, function () {
+                        handleNoGeolocation(true);
+                    });
+                } else {
+                    // Browser doesn't support Geolocation
+                    handleNoGeolocation(false);
+                }
+
+
+                var triangleCoords = [
+                    new google.maps.LatLng(28.525416, 79.870605),
+                    new google.maps.LatLng(27.190518, 77.530518),
+                    new google.maps.LatLng(29.013807, 77.67334)
+
+                ];
+
+
+
+                // Construct the polygon
+                bermudaTriangle = new google.maps.Polygon({
+                    paths: triangleCoords,
+                    draggable: true,
+                    editable: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35
+                });
+
+                bermudaTriangle.setMap(map);
+                google.maps.event.addListener(bermudaTriangle, "dragend", getPolygonCoords);
+                google.maps.event.addListener(bermudaTriangle.getPath(), "insert_at", getPolygonCoords);
+                google.maps.event.addListener(bermudaTriangle.getPath(), "remove_at", getPolygonCoords);
+                google.maps.event.addListener(bermudaTriangle.getPath(), "set_at", getPolygonCoords);
+
+            }
+
+            function handleNoGeolocation(errorFlag) {
+                if (errorFlag) {
+                    var content = 'Error: The Geolocation service failed.';
+                } else {
+                    var content = 'Error: Your browser doesn\'t support geolocation.';
+                }
+
+                var options = {
+                    map: map,
+                    position: new google.maps.LatLng(60, 105),
+                    content: content
+                };
+
+                var infowindow = new google.maps.InfoWindow(options);
+                map.setCenter(options.position);
+            }
+
+
+
+            function getPolygonCoords() {
+                var len = bermudaTriangle.getPath().getLength();
+                var htmlStr = "";
+                for (var i = 0; i < len; i++) {
+                    htmlStr += bermudaTriangle.getPath().getAt(i).toUrlValue(5) + "<br>";
+                }
+                document.getElementById('info').innerHTML = htmlStr;
+            }
+
+
+
+
+
+
+
+            google.maps.event.addDomListener(window, 'load', initialize);
+
+        </script>
+    </head>
+    <body>
+        <div id="map-canvas" style="height: 400px; width: auto;"></div>
+        <div id="info" style="position: absolute; font-family: Arial; font-size: 14px;"> </div>
+    </body>
+</html>
